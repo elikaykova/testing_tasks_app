@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block title %}<title>Task Solving</title>{% endblock %}
+    <meta charset="utf-8">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    {% block sidebar %}
+        <ul class="nav-bar">
+            <li><a href="{% url 'index' %}">Home</a></li>
+            <li><a href="{% url 'users' %}">All users</a></li>
+            <li><a href="{% url 'tasks' %}">All tasks</a></li>
+            <li><a href="{% url 'solutions' %}">All solutions</a></li>
+            {% if user.is_authenticated %}
+                <li class="loginbuttons">User: {{ user.get_username }}</li>
+                <li class="loginbuttons"><a href="{% url 'logout'%}?next={{request.path}}">Logout</a></li>   
+            {% else %}
+                <li class="loginbuttons"><a href="{% url 'login'%}?next={{request.path}}">Login</a></li>   
+            {% endif %} </li>
+        </ul>
+    {% endblock %}
+    {% block content %}{% endblock %}
+</body>
+</html>

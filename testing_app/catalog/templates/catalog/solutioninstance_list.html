@@ -1,0 +1,21 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Solutions</h1>
+  {% if solutioninstance_list %}
+  <ul>
+    {% for sol in solutioninstance_list %}
+      <li>
+        <a href="{{ sol.user.get_absolute_url }}"> {{ sol.user.username }}</a> 
+        submited 
+        <a href="{{ sol.get_absolute_url }}"> solution </a> 
+        for task: 
+        <a href="{{ sol.task.get_absolute_url }}"> {{sol.task.task_name}}</a>
+         with score of: {{sol.score}}
+      </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+    <p>There are no solutions submited.</p>
+  {% endif %}       
+{% endblock %}

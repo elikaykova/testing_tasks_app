@@ -1,0 +1,23 @@
+body {
+    background: rgb(0, 200, 255);
+}
+
+.nav-bar {
+    margin-top: 20px;
+    padding: 0;
+    list-style: none;
+    float: top;
+}
+
+.nav-bar li{
+    display: inline;
+    padding-left: 20px;
+}
+
+ul {
+    list-style: none;
+}
+
+.loginbuttons {
+    float: right;
+}

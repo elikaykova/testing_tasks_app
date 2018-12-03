@@ -1,0 +1,13 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Let's solve some tasks!</h1>
+  <p>Welcome to our page :)</p>
+  <p>The site has the following record counts:</p>
+  <ul>
+    <li><strong>Users:</strong> {{ num_users }}</li>
+    <li><strong>Tasks:</strong> {{ num_tasks }}</li>
+    <li><strong>Solutions submited:</strong> {{ num_solutions }}</li>
+    <li><strong>Visits: {{num_visits}}</strong></li>
+  </ul>
+{% endblock %}
