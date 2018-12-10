@@ -5,14 +5,15 @@
   {% if solutioninstance_list %}
   <ul>
     {% for sol in solutioninstance_list %}
-      <li>
-        <a href="{{ sol.user.get_absolute_url }}"> {{ sol.user.username }}</a> 
-        submited 
-        <a href="{{ sol.get_absolute_url }}"> solution </a> 
-        for task: 
-        <a href="{{ sol.task.get_absolute_url }}"> {{sol.task.task_name}}</a>
-         with score of: {{sol.score}}
-      </li>
+      {% if sol.user == request.user %}
+        <li>
+          You have submited 
+          <a href="{{ sol.get_absolute_url }}"> solution </a> 
+          for task: 
+          <a href="{{ sol.task.get_absolute_url }}"> {{sol.task.task_name}}</a>
+           with score of: {{sol.score}}
+        </li>
+      {% endif %}
     {% endfor %}
   </ul>
   {% else %}

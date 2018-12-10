@@ -5,4 +5,6 @@
 <h1>{{ task.task_name }}</h1>
 
 <p>{{ task.text }}</p>
+
+<a href="{% url 'submitSolution' %}">Submit your solution</a>
 {% endblock %}

@@ -31,5 +31,6 @@ class SolutionInstanceAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'username', 'user_progress', 'date_joined')
+    list_display = ('id', 'username', 'user_progress', 'date_joined', 'is_staff', 'is_active')
     fields = ['username', 'date_joined', 'password']
+    list_filter = ('is_staff', 'is_active')

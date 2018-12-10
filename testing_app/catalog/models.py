@@ -1,9 +1,9 @@
 from django.db import models
 from django.urls import reverse
-from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import datetime
 
 
 class User(AbstractUser):
@@ -23,6 +23,13 @@ class User(AbstractUser):
     def get_absolute_url(self):
         return reverse('user-detail', args=[str(self.id)])
 
+    def create_user(self, username, email, password=None):
+        self.username = username
+        self.email = email
+        self.date_joined = datetime.today()
+        set_password(password)
+        self.save()
+
 
 class Task(models.Model):
     """Model representing a Task"""
@@ -39,6 +46,10 @@ class Task(models.Model):
 
     def get_absolute_url(self):
         return reverse('task-detail', args=[str(self.id)])
+
+    @classmethod
+    def get_all_tasks(cls):
+        return ((task, str(task)) for task in Task.objects.all())
 
 
 class Test(models.Model):

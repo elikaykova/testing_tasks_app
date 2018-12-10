@@ -1,8 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from catalog.models import Test, Task, SolutionInstance, User
 from django.views import generic
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+
+from catalog.forms import SubmitSolutionForm
 
 def index(request):
     """View function for home page of site."""
@@ -43,3 +45,23 @@ class SolutionListView(LoginRequiredMixin, generic.ListView):
 
 class SolutionDetailView(LoginRequiredMixin, generic.DetailView):
     model = SolutionInstance
+
+@login_required
+def submitSolution(request):
+    if request.method == 'POST':
+        form = SubmitSolutionForm(request.POST, user=request.user)
+        if form.is_valid():
+            sol = form.save(commit=False)
+            sol.solution = form.cleaned_data['solution']
+            sol.task = form.cleaned_data['task']
+            sol.user = request.user
+            # form.user = User.objects.get(user)
+            sol = sol.save()
+            return redirect('solutions')
+        else:
+            print(form.errors)
+            return render(request, 'submitSolution.html', {'sol': sol})
+
+    else:
+        form = SubmitSolutionForm(user=request.user)
+    return render(request, 'submitSolution.html',  {'form': form})

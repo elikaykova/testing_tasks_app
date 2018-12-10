@@ -12,12 +12,15 @@
             <li><a href="{% url 'index' %}">Home</a></li>
             <li><a href="{% url 'users' %}">All users</a></li>
             <li><a href="{% url 'tasks' %}">All tasks</a></li>
-            <li><a href="{% url 'solutions' %}">All solutions</a></li>
+            {% if user.is_authenticated %}<li><a href="{% url 'solutions' %}">My solutions</a></li>{% endif %}
+            <!-- <li><a href="{% url 'submitSolution' %}">Submit solution</a></li> -->
             {% if user.is_authenticated %}
                 <li class="loginbuttons">User: {{ user.get_username }}</li>
-                <li class="loginbuttons"><a href="{% url 'logout'%}?next={{request.path}}">Logout</a></li>   
+                <li class="loginbuttons"><a href="{% url 'accounts:logout' %}?next={{request.path}}">Logout</a></li>   
             {% else %}
-                <li class="loginbuttons"><a href="{% url 'login'%}?next={{request.path}}">Login</a></li>   
+                <li class="loginbuttons"><a href="{% url 'accounts:login' %}?next={{request.path}}">
+                Login
+                <li class="loginbuttons"><a href="{% url 'accounts:signup' %}?next={{request.path}}">Sign Up</a></li>   
             {% endif %} </li>
         </ul>
     {% endblock %}
