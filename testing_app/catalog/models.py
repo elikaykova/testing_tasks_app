@@ -20,15 +20,18 @@ class User(AbstractUser):
         solutions = [sol.id for sol in SolutionInstance.objects.all() if sol.user.id == self.id]
         return [task for task in Task.objects.all() if task.id in solutions]
 
+    def get_all_solutions(self):
+        return [sol for sol in SolutionInstance.objects.all() if sol.user.id == self.id]
+
     def get_absolute_url(self):
         return reverse('user-detail', args=[str(self.id)])
 
-    def create_user(self, username, email, password=None):
-        self.username = username
-        self.email = email
-        self.date_joined = datetime.today()
-        set_password(password)
-        self.save()
+    # def create_user(self, username, email, password=None):
+    #     self.username = username
+    #     self.email = email
+    #     self.date_joined = datetime.today()
+    #     set_password(password)
+    #     self.save()
 
 
 class Task(models.Model):
@@ -87,3 +90,6 @@ class SolutionInstance(models.Model):
 
     def get_absolute_url(self):
         return reverse('solution-detail', args=[str(self.id)])
+
+    def get_queryset(self):
+        return SolutionInstance.objects.filter(owner=self.kwargs['pk'])

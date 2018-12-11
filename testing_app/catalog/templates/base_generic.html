@@ -9,13 +9,14 @@
 <body>
     {% block sidebar %}
         <ul class="nav-bar">
-            <li><a href="{% url 'index' %}">Home</a></li>
-            <li><a href="{% url 'users' %}">All users</a></li>
-            <li><a href="{% url 'tasks' %}">All tasks</a></li>
-            {% if user.is_authenticated %}<li><a href="{% url 'solutions' %}">My solutions</a></li>{% endif %}
-            <!-- <li><a href="{% url 'submitSolution' %}">Submit solution</a></li> -->
+            <li class="leftButtons"><a href="{% url 'index' %}">Home</a></li>
+            <li class="leftButtons"><a href="{% url 'users' %}">All users</a></li>
+            <li class="leftButtons"><a href="{% url 'tasks' %}">All tasks</a></li>
             {% if user.is_authenticated %}
-                <li class="loginbuttons">User: {{ user.get_username }}</li>
+                <li class="leftButtons"><a href="{% url 'solutions' %}">My solutions</a></li>
+                <li class="leftButtons"><a href="{% url 'submitTask' %}">Suggest a task</a></li>
+            <!-- <li><a href="{% url 'submitSolution' %}">Submit solution</a></li> -->
+                <li class="loginbuttons">User: {{ request.user.get_username }}</li>
                 <li class="loginbuttons"><a href="{% url 'accounts:logout' %}?next={{request.path}}">Logout</a></li>   
             {% else %}
                 <li class="loginbuttons"><a href="{% url 'accounts:login' %}?next={{request.path}}">

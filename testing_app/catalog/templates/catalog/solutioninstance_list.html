@@ -1,21 +1,35 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-  <h1>Solutions</h1>
-  {% if solutioninstance_list %}
-  <ul>
+  <h1>My Solutions</h1>
+  {% if user.get_all_solutions %}
+  <table id="scoreTable">
+    <tr class="topRow">
+      <td>Task</td>
+      <td>Score</td>
+      <td>Date</td>
+      <td>Solution</td>
+    </tr>
     {% for sol in solutioninstance_list %}
       {% if sol.user == request.user %}
-        <li>
-          You have submited 
-          <a href="{{ sol.get_absolute_url }}"> solution </a> 
-          for task: 
-          <a href="{{ sol.task.get_absolute_url }}"> {{sol.task.task_name}}</a>
-           with score of: {{sol.score}}
-        </li>
+        <tr>
+          <td>
+            <a href="{{ sol.task.get_absolute_url }}">{{sol.task.task_name}}</a>
+          </td>
+          <td>
+            {{sol.score}}
+          </td>          
+          <td>
+            {{sol.submition_date}}
+          </td>
+          <td>
+            <a href="{{ sol.get_absolute_url }}"> Solution </a>
+          </td>
+        </tr>
+      </tr>
       {% endif %}
     {% endfor %}
-  </ul>
+  </table>
   {% else %}
     <p>There are no solutions submited.</p>
   {% endif %}       

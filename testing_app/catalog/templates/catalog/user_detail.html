@@ -3,12 +3,13 @@
 {% block content %}
 
 <h1>Name: {{ user.username }}</h1>
-
 <p><strong>Progress:</strong> {{ user.user_progress }}</p>
 <p><strong>Solved tasks:</strong> 
 <ol>
-{% for task in user.get_all_tasks %}
-    <li><a href="{{ task.get_absolute_url }}">{{ task.task_name }}</a></li>
-{% endfor %}</p>  
+{% for sol in user.get_all_solutions %}
+    {% if sol.user == user %}
+        <li><a href="{{ sol.task.get_absolute_url }}">{{sol.task.task_name}}</a></li>
+    {% endif %}
+{% endfor %}
 </ol>
 {% endblock %}

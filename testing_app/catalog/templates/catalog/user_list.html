@@ -3,12 +3,17 @@
 {% block content %}
   <h1>User List</h1>
   {% if user_list %}
-  <ul>
+  <table id="userTable">
+    <tr class="topRow">
+      <td>User</td>
+      <td>Score</td>
+    </tr>
     {% for user in user_list %}
       {% if not user.is_staff %}
-        <li>
-          <a href="{{ user.get_absolute_url }}">{{ user.username }}</a> ({{user.user_progress}})
-        </li>
+        <tr>
+          <td><a href="{{ user.get_absolute_url }}">{{ user.username }}</a></td> 
+          <td>{{user.user_progress}}</td>
+        </tr>
       {% endif %}
     {% endfor %}
   </ul>
