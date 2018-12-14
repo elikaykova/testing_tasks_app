@@ -4,4 +4,9 @@
 <h1>Name: {{ solutioninstance.user.username }}</h1>
 <p><strong>Score:</strong> {{ solutioninstance.score }}</p>
 <p><strong>Solution:</strong> <br> {{solutioninstance.solution}}</p>
+
+{% if solutioninstance.reports %}
+    <p><strong>Report:</strong> <br> {{solutioninstance.reports}}</p>
+{% endif %}
+
 {% endblock %}

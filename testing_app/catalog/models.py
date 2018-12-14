@@ -76,10 +76,11 @@ class SolutionInstance(models.Model):
     """Model representing a solution"""
     task = models.ForeignKey('Task', on_delete=models.CASCADE, null=True)
     user = models.ForeignKey('User', on_delete=models.CASCADE, null=True)
-    score = models.IntegerField(default=0)
+    score = models.FloatField(default=0)
+    reports = models.TextField(null=True)
     attempt = models.IntegerField(default=0)
-    submition_date = models.DateField(null=True, blank=True)
-    solution = models.TextField()
+    submition_date = models.DateTimeField(null=True, blank=True)
+    solution = models.TextField(null=True)
 
     class Meta:
         ordering = ['submition_date', 'user']

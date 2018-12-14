@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.views import generic
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from datetime import date
+from datetime import date, datetime
 
 from catalog.models import Test, Task, SolutionInstance, User
 from catalog.forms import SubmitForm, SubmitTaskForm
@@ -78,8 +78,9 @@ def submit(request, pk):
             sol.solution = form.cleaned_data['solution']
             sol.task = task
             sol.user = request.user
-            sol.score = test_solution(sol.solution, sol.task)
-            sol.submition_date = date.today()
+            sol.score, sol.reports = test_solution(sol.solution, sol.task)
+            sol.score = format(sol.score, '.2f')
+            sol.submition_date = datetime.now()
             sol = sol.save()
             return redirect('solutions')
         else:
