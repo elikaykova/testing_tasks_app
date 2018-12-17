@@ -1,0 +1,23 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+
+  <h3>Task: {{ task.task_name}}</h3>
+
+  <p> Problem: {{ task.text }}</p>
+
+  <h4>Submit your solution</h4>
+  <form id="submitForm" method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <p>
+        {{ field.label_tag }}<br>
+        {{ field }}
+        {% for error in field.errors %}
+          <p style="color: red">{{ error }}</p>
+        {% endfor %}
+      </p>
+    {% endfor %}
+    <button type="submit">Submit</button>
+  </form>
+{% endblock %}
