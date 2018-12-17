@@ -8,7 +8,7 @@ import datetime
 
 class User(AbstractUser):
     """Model representing a User"""
-    user_progress = models.IntegerField(default=0)
+    user_progress = models.FloatField(default=0)
 
     class Meta:
         ordering = ['user_progress', 'username']
@@ -25,6 +25,12 @@ class User(AbstractUser):
 
     def get_absolute_url(self):
         return reverse('user-detail', args=[str(self.id)])
+
+    def update_score(self, score):
+        self.user_progress = self.user_progress + score
+
+    def get_tasks(self):
+        return [tasks for task in self.get_all_tasks() if task in [sol_task.task for sol_task in self.get_all_solutions()]]
 
     # def create_user(self, username, email, password=None):
     #     self.username = username
@@ -74,8 +80,8 @@ class Test(models.Model):
 
 class SolutionInstance(models.Model):
     """Model representing a solution"""
-    task = models.ForeignKey('Task', on_delete=models.CASCADE, null=True)
-    user = models.ForeignKey('User', on_delete=models.CASCADE, null=True)
+    task = models.ForeignKey('Task', on_delete=models.CASCADE)
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
     score = models.FloatField(default=0)
     reports = models.TextField(null=True)
     attempt = models.IntegerField(default=0)

@@ -2,11 +2,14 @@
 {% block content %}
 
 <h1>Name: {{ solutioninstance.user.username }}</h1>
+<strong>Task: </strong><a href="{{ solutioninstance.task.get_absolute_url }}">{{solutioninstance.task.task_name}}</a>
 <p><strong>Score:</strong> {{ solutioninstance.score }}</p>
 <p><strong>Solution:</strong> <br> {{solutioninstance.solution}}</p>
 
 {% if solutioninstance.reports %}
-    <p><strong>Report:</strong> <br> {{solutioninstance.reports}}</p>
+    <p><strong>Report:</strong> <br>
+        <pre>{{solutioninstance.reports}}</pre>
+    </p>
 {% endif %}
 
 {% endblock %}
