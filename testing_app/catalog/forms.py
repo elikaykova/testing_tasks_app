@@ -1,5 +1,6 @@
 from django import forms
 from catalog.models import Test, Task, SolutionInstance, User
+from django.forms import modelformset_factory, inlineformset_factory
 
 
 # class SubmitSolutionForm(forms.ModelForm):
@@ -33,9 +34,6 @@ class SubmitForm(forms.ModelForm):
         super(SubmitForm, self).__init__(*args, **kwargs)
 
 class SubmitTaskForm(forms.ModelForm):
-    task_name = forms.CharField(widget=forms.TextInput)
-    text = forms.CharField(widget=forms.Textarea)
-
     class Meta:
         model = Task
         fields = ['task_name', 'text',]
@@ -47,3 +45,4 @@ class AddTestForm(forms.ModelForm):
         fields = ['test_input', 'test_output',]
         labels = {'test_input': ' Input', 'test_output': 'Output'}
 
+AddTestFormSet = inlineformset_factory(Task, Test, extra=3, fields=('test_input', 'test_output'), can_delete=True)

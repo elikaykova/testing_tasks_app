@@ -13,6 +13,7 @@
             <li class="leftButtons"><a href="{% url 'users' %}">All users</a></li>
             <li class="leftButtons"><a href="{% url 'tasks' %}">All tasks</a></li>
             {% if user.is_authenticated %}
+                <li class="leftButtons"><a href="{% url 'mytasks' %}">My tasks</a></li>
                 <li class="leftButtons"><a href="{% url 'solutions' %}">My solutions</a></li>
                 <li class="leftButtons"><a href="{% url 'submitTask' %}">Suggest a task</a></li>
             <!-- <li><a href="{% url 'submitSolution' %}">Submit solution</a></li> -->

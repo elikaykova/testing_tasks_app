@@ -1,20 +1,9 @@
 {% extends 'base_generic.html' %}
 
 {% block content %}
-    
-  <h3>Suggest a task:</h3>
+  <h3>Edit your tests:</h3>
   <form id="submitTaskForm" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {% for field in form %}
-      <p>
-        {{ field.label_tag }}<br>
-        {{ field }}
-        {% for error in field.errors %}
-          <p style="color: red">{{ error }}</p>
-        {% endfor %}
-      </p>
-    {% endfor %}
-
     {{ formset.management_form }}
 
     {% for form in formset %}  
@@ -29,6 +18,7 @@
     {% endfor %}
 
     <button type="submit">Submit</button>
+    <a href="{{ task.get_absolute_url }}" class="backButton" >Back</a>
   </form>
 
 {% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+
+<form method="post">
+    {% csrf_token %}
+    <p>Are you sure you want to delete "{{ task }}"?</p>
+    <input type="submit" value="Yes" id="editButton">
+    <a href="{{ task.get_absolute_url }}" id="editButton">Cancel</a>
+</form>
+
+{% endblock %}

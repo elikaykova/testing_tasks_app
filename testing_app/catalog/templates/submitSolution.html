@@ -3,8 +3,9 @@
 {% block content %}
 
   <h3>Task: {{ task.task_name}}</h3>
+  <p> <b>Publisher:</b> {{ task.publisher.username }}</p>
+  <p> <b>Problem: </b><br/> {{ task.text }}</p>
 
-  <p> Problem: {{ task.text }}</p>
 
   <h4>Submit your solution</h4>
   <form id="submitForm" method="post">
@@ -20,4 +21,12 @@
     {% endfor %}
     <button type="submit">Submit</button>
   </form>
+
+  {% if request.user == task.publisher %}
+    <div id='editButtons'>
+      <a href="{% url 'deleteTask' pk=task.id %}" id="editButton"> Delete task </a>
+      <a href="{% url 'editTask' pk=task.id %}" id="editButton"> Edit task </a>
+      <a href="{% url 'editTests' pk=task.id %}" id="editButton"> Edit tests </a>
+    </div>
+  {% endif %}
 {% endblock %}

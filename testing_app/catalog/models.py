@@ -23,11 +23,16 @@ class User(AbstractUser):
     def get_all_solutions(self):
         return [sol for sol in SolutionInstance.objects.all() if sol.user.id == self.id]
 
+    def get_max_score_for_task(self, task):
+        solutions = self.get_all_solutions()
+        return max([sol.score for sol in solutions if sol.task == task])
+
     def get_absolute_url(self):
         return reverse('user-detail', args=[str(self.id)])
 
-    def update_score(self, score):
-        self.user_progress = self.user_progress + score
+    def update_score(self, score, task):
+        if self.get_max_score_for_task(task) < score:
+            self.user_progress = self.user_progress + score
 
     def get_tasks(self):
         return [tasks for task in self.get_all_tasks() if task in [sol_task.task for sol_task in self.get_all_solutions()]]
@@ -46,6 +51,7 @@ class Task(models.Model):
     release_date = models.DateField(null=True, blank=True)
     test_number = models.IntegerField(default=0)
     text = models.TextField()
+    publisher = models.ForeignKey('User', on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['id']
@@ -64,7 +70,7 @@ class Task(models.Model):
 class Test(models.Model):
     """Model representing a Test"""
     test_num = models.IntegerField(default=1)
-    task = models.ForeignKey('Task', on_delete=models.CASCADE, null=True)
+    task = models.ForeignKey('Task', on_delete=models.CASCADE)
     test_input = models.TextField()
     test_output = models.TextField()
 

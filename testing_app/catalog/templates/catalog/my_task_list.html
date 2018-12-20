@@ -1,0 +1,18 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>My Task List</h1>
+  {% if task_list %}
+  <ol>
+    {% for task in task_list %}
+      {% if task.publisher == request.user %}
+        <li>
+          <a href="{{ task.get_absolute_url }}">{{ task.task_name }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ol>
+  {% else %}
+    <p>There are no tasks.</p>
+  {% endif %}       
+{% endblock %}

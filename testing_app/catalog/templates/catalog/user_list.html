@@ -7,12 +7,14 @@
     <tr class="topRow">
       <td>User</td>
       <td>Score</td>
+      <td>Date Joined</td>
     </tr>
     {% for user in user_list %}
       {% if not user.is_staff %}
         <tr>
           <td><a href="{{ user.get_absolute_url }}">{{ user.username }}</a></td> 
           <td>{{user.user_progress}}</td>
+          <td>{{user.date_joined}}</td>
         </tr>
       {% endif %}
     {% endfor %}

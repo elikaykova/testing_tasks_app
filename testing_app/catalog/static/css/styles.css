@@ -4,32 +4,9 @@ body {
     background: #EFFBF8;
     text-align: left;
     padding-left: 40px;
-     margin: auto;
+    margin: auto;
+    /*font-family: sans-serif;*/
 }
-
-/*.nav-bar {
-    margin-top: 20px;
-    padding: 0;
-    list-style: none;
-    float: top;
-    text-align: left;
-    border-bottom: 1px solid;
-}
-
-.nav-bar li {
-    display: inline;
-    margin-left: 10px;
-    margin-right: 10px;
-}
-
-.nav-bar li a:hover {
-    border-bottom: 2px solid;
-    border-top: 2px solid;
-    border-color: darkblue;
-    border-spacing: initial;
-    background-color: grey; 
-}
-*/
 
 ul {
     list-style: none;
@@ -48,7 +25,7 @@ a:visited {
     color: black;
 }
 
-a:hover {
+a:hover, a > :hover {
     color: #E0F2F7;
     background-color: #4CAF50; 
 }
@@ -107,8 +84,34 @@ button[type=submit] {
     cursor: pointer;
 }
 
-button[type=submit]:hover {
+button[type=submit]:hover , #editButton:hover, .backButton:hover {
     background-color: #45a049;
+}
+
+#addTestButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin: auto;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    float: right;
+}
+
+#editButton, .backButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#editButtons, .backButton{
+    padding-top: 14px;
+    float: right;
 }
 
 .nav-bar {
@@ -159,4 +162,13 @@ td {
 .formset textarea {
     width: 400px;
     height: 45px;
+    margin: auto;
+}
+
+pre {
+    font-family: sans-serif;
+}
+
+.backButton, .backButton:visited {
+    color: white;
 }

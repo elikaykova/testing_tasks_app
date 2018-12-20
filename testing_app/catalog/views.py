@@ -5,9 +5,15 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from datetime import date, datetime
 from django.forms.formsets import formset_factory
 from django.forms import modelformset_factory
+from django.http import HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render, reverse
+from django.views.generic.edit import UpdateView
+from django.urls import reverse_lazy
+from django.views.generic.edit import DeleteView
+
 
 from catalog.models import Test, Task, SolutionInstance, User
-from catalog.forms import SubmitForm, SubmitTaskForm, AddTestForm
+from catalog.forms import SubmitForm, SubmitTaskForm, AddTestForm, AddTestFormSet
 from catalog.additions import test_solution
 
 def index(request):
@@ -35,8 +41,14 @@ def index(request):
 class UserListView(LoginRequiredMixin, generic.ListView):
     model = User
 
+    ordering = ['-user_progress']
+
 class UserDetailView(LoginRequiredMixin, generic.DetailView):
     model = User
+
+class MyTaskListView(LoginRequiredMixin, generic.ListView):
+    template_name = "catalog/my_task_list.html"
+    model = Task
 
 class TaskListView(generic.ListView):
     model = Task
@@ -46,6 +58,8 @@ class TaskDetailView(generic.DetailView):
 
 class SolutionListView(LoginRequiredMixin, generic.ListView):
     model = SolutionInstance
+
+    ordering = ['-submition_date']
 
 class SolutionDetailView(LoginRequiredMixin, generic.DetailView):
     model = SolutionInstance
@@ -83,7 +97,7 @@ def submit(request, pk):
             sol.score, sol.reports = test_solution(sol.solution, sol.task)
             sol.score = format(sol.score, '.2f')
             sol.submition_date = datetime.now()
-            request.user.update_score(float(sol.score))
+            request.user.update_score(float(sol.score), sol.task)
             request.user.save()
             # request.user = sol.user.save()
             sol = sol.save()
@@ -97,65 +111,70 @@ def submit(request, pk):
 
 @login_required
 def submitTask(request):
-    AddTestFormSet = modelformset_factory(Test, extra=1, fields=('test_input', 'test_output',))
+
+    form = SubmitTaskForm()
+    formset = AddTestFormSet(queryset=Test.objects.none(), instance=Task())
 
     if request.method == 'POST':
         form = SubmitTaskForm(request.POST)
-        formset = AddTestFormSet(request.POST, queryset=Test.objects.none())
 
-        if all([form.is_valid(), formset.is_valid()]):
-            sol = form.save(commit=False)
-            sol.release_date = date.today()
-            sol = sol.save()
-            instances = formset.save(commit=False)
-            for instance in instances:
-                if instance.cleaned_data:
-                    instance.save()
-            return redirect('tasks')
+        if form.is_valid():
+            task = form.save(commit=False)
+            task.release_date = date.today()
+            task.publisher = request.user
+            task = form.save()
+            formset = AddTestFormSet(request.POST, request.FILES, instance=task)
+
+            if formset.is_valid():
+                formset.save()
+                # for instance in instances:
+                #     instance.save()
+                return redirect('tasks')
 
         else:
             print(form.errors)
-            return render(request, 'submitTask.html', {'sol': sol, 'instances': instances})
+            print(formset.errors)
+            return render(request, 'submitTask.html', {'form': form, 'formset':formset})
 
     else:
         form = SubmitTaskForm()
-        formset = AddTestFormSet(queryset=Test.objects.none())
+        formset = AddTestFormSet(queryset=Test.objects.none(), instance=Task())
     return render(request, 'submitTask.html',  {'form': form, 'formset':formset})
 
-    # AddTestFormSet = formset_factory(AddTestForm, extra=2)
 
-    # if request.method == 'POST':
-    #     data={
-    #             'form-TOTAL_FORMS': 1,
-    #             'form-INITIAL_FORMS': 0,
-    #             'form-0-test_input': "",
-    #             'form-0-test_output': "",
-    #             'form-1-test_input': "",
-    #             'form-1-test_output': "",
-    #         },
-    #     form = SubmitTaskForm(request.POST)
-    #     formset = AddTestFormSet(request.POST, data)
 
-    #     # AddTestFormSet = inlineformset_factory(Task, Test, fields=('test_input',))
-    #     # form = SubmitTaskForm(request.POST)
-    #     # formset = AddTestFormSet(instance=form)
+# class editTask(UpdateView):
+#     model = Task
+#     fields = ['task_name', 'text']
 
-    #     if all([form.is_valid(), formset.is_valid()]):
-    #         sol = form.save(commit=False)
-    #         sol.release_date = date.today()
-    #         sol = sol.save()
-    #         for inline_form in formset:
-    #             if inline_form.cleaned_data:
-    #                 # test = inline_form.save(commit=False)
-    #                 # test.save()
-    #                 inline_form.save()
-    #         return redirect('tasks')
+@login_required
+def editTask(request, pk=None):
+    task = get_object_or_404(Task, pk=pk)
 
-    #     else:
-    #         print(form.errors)
-    #         return render(request, 'submitTask.html', {'sol': sol})
+    form = SubmitTaskForm(request.POST or None, instance=task)
+    if form.is_valid():
+        task = form.save()
+        return redirect('tasks')
 
-    # else:
-    #     form = SubmitTaskForm()
-    #     formset = AddTestFormSet()
-    # return render(request, 'submitTask.html',  {'form': form, 'formset':formset})
+    return render(request, 'editTask.html',  {'form': form, 'task': task, })
+
+@login_required
+def deleteTask(request, pk=None):
+    task = get_object_or_404(Task, pk=pk)
+    if request.method == 'POST':
+        task.delete()
+        return redirect('tasks')
+
+    return render(request, 'deleteTask.html',  {'task': task, })
+
+
+@login_required
+def editTests(request, pk=None):
+    task = get_object_or_404(Task, pk=pk)
+
+    formset = AddTestFormSet(request.POST or None, instance=task)
+    if formset.is_valid():
+        task = formset.save()
+        return redirect('tasks')
+
+    return render(request, 'editTests.html',  {'formset': formset, 'task': task, })
