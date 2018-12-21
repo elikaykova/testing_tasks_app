@@ -25,7 +25,10 @@ class User(AbstractUser):
 
     def get_max_score_for_task(self, task):
         solutions = self.get_all_solutions()
-        return max([sol.score for sol in solutions if sol.task == task])
+        sol = [sol.score for sol in solutions if sol.task == task]
+        if sol:
+            return max(sol)
+        return 0
 
     def get_absolute_url(self):
         return reverse('user-detail', args=[str(self.id)])
@@ -93,6 +96,7 @@ class SolutionInstance(models.Model):
     attempt = models.IntegerField(default=0)
     submition_date = models.DateTimeField(null=True, blank=True)
     solution = models.TextField(null=True)
+    done = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['submition_date', 'user']

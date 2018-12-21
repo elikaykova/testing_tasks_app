@@ -15,6 +15,7 @@ from django.views.generic.edit import DeleteView
 from catalog.models import Test, Task, SolutionInstance, User
 from catalog.forms import SubmitForm, SubmitTaskForm, AddTestForm, AddTestFormSet
 from catalog.additions import test_solution
+from catalog.rq_test import rq_exec
 
 def index(request):
     """View function for home page of site."""
@@ -84,6 +85,7 @@ def submitSolution(request):
         form = SubmitSolutionForm(user=request.user)
     return render(request, 'submitSolution.html',  {'form': form})
 
+
 @login_required
 def submit(request, pk):
     task = Task.objects.get(pk=pk)
@@ -94,13 +96,17 @@ def submit(request, pk):
             sol.solution = form.cleaned_data['solution']
             sol.task = task
             sol.user = request.user
-            sol.score, sol.reports = test_solution(sol.solution, sol.task)
-            sol.score = format(sol.score, '.2f')
+            sol.done = False
             sol.submition_date = datetime.now()
+            sol.save()
+
+            rq_exec(sol.id)
+            # sol.score = format(sol.score, '.2f')
+            # updating user score
             request.user.update_score(float(sol.score), sol.task)
             request.user.save()
             # request.user = sol.user.save()
-            sol = sol.save()
+            sol.save()
             return redirect('solutions')
         else:
             print(form.errors)
@@ -108,6 +114,7 @@ def submit(request, pk):
     else:
         form = SubmitForm(user=request.user)
     return render(request, 'submitSolution.html',  {'form': form, "task":task})
+
 
 @login_required
 def submitTask(request):

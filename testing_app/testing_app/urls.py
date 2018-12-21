@@ -28,3 +28,7 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/catalog/', permanent=True)),
     path('', include('django.contrib.auth.urls')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+urlpatterns += [
+    path('django-rq/', include('django_rq.urls'))
+]

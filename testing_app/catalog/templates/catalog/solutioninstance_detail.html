@@ -4,13 +4,17 @@
 <h1>Name: {{ solutioninstance.user.username }}</h1>
 <strong>Task:</strong><pre><a href="{{ solutioninstance.task.get_absolute_url }}">
 {{solutioninstance.task.task_name}}</a></pre>
-<p><strong>Score:</strong> {{ solutioninstance.score }}</p>
-<p><strong>Solution:</strong> <br> <pre>{{solutioninstance.solution}}<pre></p>
+{% if solutioninstance.done %}
+    <p><strong>Score:</strong> {{ solutioninstance.score }}</p>
+    <p><strong>Solution:</strong> <br> <pre>{{solutioninstance.solution}}<pre></p>
 
-{% if solutioninstance.reports %}
-    <p><strong>Report:</strong> <br>
-        <pre>{{solutioninstance.reports}}</pre>
-    </p>
+    {% if solutioninstance.reports %}
+        <p><strong>Report:</strong> <br>
+            <pre>{{solutioninstance.reports}}</pre>
+        </p>
+    {% endif %}
+{% else %}
+    <p>Submiting... Please wait.</p>
 {% endif %}
 
 {% endblock %}

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'catalog.apps.CatalogConfig',
     'accounts',
+    "django_rq",
 ]
 
 MIDDLEWARE = [
@@ -127,3 +128,13 @@ LOGIN_REDIRECT_URL = '/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 AUTH_USER_MODEL = 'catalog.User'
+
+RQ_QUEUES = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        'PASSWORD': 'mypass',
+        'DEFAULT_TIMEOUT': 360,
+    },
+}

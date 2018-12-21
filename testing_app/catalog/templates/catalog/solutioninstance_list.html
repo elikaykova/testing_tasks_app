@@ -17,7 +17,11 @@
             <a href="{{ sol.task.get_absolute_url }}">{{sol.task.task_name}}</a>
           </td>
           <td>
-            {{sol.score}}
+            {% if sol.done %}
+              {{sol.score}}
+            {% else %}
+              Submiting...
+            {% endif %}
           </td>          
           <td>
             {{sol.submition_date}}
