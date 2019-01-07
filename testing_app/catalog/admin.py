@@ -25,8 +25,8 @@ class TestAdmin(admin.ModelAdmin):
 
 @admin.register(SolutionInstance)
 class SolutionInstanceAdmin(admin.ModelAdmin):
-    list_display = ('task', 'user', 'score', 'attempt', 'submition_date')
-    fields = [('task', 'user'), 'submition_date', 'attempt', 'solution']
+    list_display = ('task', 'user', 'score', 'attempt', 'submition_date', 'done')
+    fields = [('task', 'user'), 'submition_date', 'attempt',  'done', 'solution']
 
 
 @admin.register(User)

@@ -10,6 +10,8 @@ from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.views.generic.edit import UpdateView
 from django.urls import reverse_lazy
 from django.views.generic.edit import DeleteView
+from django.utils import timezone
+import pytz
 
 
 from catalog.models import Test, Task, SolutionInstance, User
@@ -97,7 +99,7 @@ def submit(request, pk):
             sol.task = task
             sol.user = request.user
             sol.done = False
-            sol.submition_date = datetime.now()
+            sol.submition_date = timezone.now()
             sol.save()
 
             rq_exec(sol.id)

@@ -1,5 +1,9 @@
 {% extends 'base_generic.html' %}
 
+{% load staticfiles %}
+<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.21.6.js"></script>
+<script src="{% static 'pubnubJS.js' %}"></script>
+
 {% block content %}
 
   <h3>Task: {{ task.task_name}}</h3>

@@ -1,6 +1,13 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
+
+{% load staticfiles %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.21.6.js"></script>
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="{% static 'pubnubJS.js' %}"></script>
+
   <h1>My Solutions</h1>
   {% if user.get_all_solutions %}
   <table id="scoreTable">
@@ -20,7 +27,7 @@
             {% if sol.done %}
               {{sol.score}}
             {% else %}
-              Submiting...
+              <span id={{sol.id}}>Submiting...</span>
             {% endif %}
           </td>          
           <td>
@@ -34,7 +41,10 @@
       {% endif %}
     {% endfor %}
   </table>
+
   {% else %}
     <p>There are no solutions submited.</p>
-  {% endif %}       
+  {% endif %}  
+
+
 {% endblock %}

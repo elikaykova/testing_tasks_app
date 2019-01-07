@@ -1,20 +1,26 @@
-from catalog.models import Test, Task, SolutionInstance, User
 import subprocess
 import tempfile
 import difflib
 from django_rq import job
+
+from catalog.models import Test, Task, SolutionInstance, User
+from catalog import pubnub_test
 
 
 def exec_file(file, test = []):
     test_input = test.test_input
     test_output = test.test_output
     res = subprocess.Popen(['python', file.name], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # for t in xrange(timeout):
+    #     sleep(1)
+    #     if p.poll() is not None:
+    #         return p.communicate()
+    # p.kill()
     try:
         if res.returncode:
             return ["can't compile"]
         else:
             res.stdin.write(bytes(test_input, 'utf-8'))
-            # res.stdin.write(test_input.encode('utf-8'))
             output = res.communicate()[0].decode().replace('\n', '\r\n').rstrip()
             try:
                 assert output == test_output
@@ -28,7 +34,6 @@ def exec_file(file, test = []):
 def solution_to_file(solution, test):
     with tempfile.NamedTemporaryFile(suffix='.py', delete=False, mode='w+b') as temp:
         temp.write(bytes(solution, 'utf-8'))
-        # temp.write(solution.encode('utf-8'))
         temp.close()
         return exec_file(temp, test)
 
@@ -47,11 +52,13 @@ def test_solution(solution_id):
         if res:
             reports = reports + 'For test {} diffs:'.format(test.test_num) + str(res) + '\n'
         else:
-            # reports = reports + 'For test {} diffs:'.format(test.test_num) + str(res)
             score = score + 1
 
     solution.score = format(score/test_num, '.2f')
     solution.reports = reports
     solution.done = True
     solution.save()
-    
+
+    # import pdb; pdb.set_trace()
+    print('publist score')
+    pubnub_test.publish([solution.score, solution_id])
