@@ -1,0 +1,14 @@
+{% load rest_framework %}
+
+<html><body>
+
+<h3>Task: {{task.task_name}}</h3>
+<p>{{task.text}}</p>
+<h4>Solution</h4>
+<form action="{% url 'API_submitSolution-detail' pk=task.id %}" method="POST">
+    {% csrf_token %}
+    {% render_form serializer %}
+    <input type="submit" value="Save">
+</form>
+
+</body></html>

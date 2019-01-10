@@ -34,8 +34,10 @@ class User(AbstractUser):
         return reverse('user-detail', args=[str(self.id)])
 
     def update_score(self, score, task):
-        if self.get_max_score_for_task(task) < score:
-            self.user_progress = self.user_progress + score
+        max_score = self.get_max_score_for_task(task)
+        if max_score < score:
+            self.user_progress = self.user_progress - max_score + score
+            self.user_progress = format(self.user_progress, '.2f')
 
     def get_tasks(self):
         return [tasks for task in self.get_all_tasks() if task in [sol_task.task for sol_task in self.get_all_solutions()]]

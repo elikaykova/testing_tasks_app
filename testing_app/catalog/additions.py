@@ -11,22 +11,20 @@ def exec_file(file, test = []):
     test_input = test.test_input
     test_output = test.test_output
     res = subprocess.Popen(['python', file.name], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # for t in xrange(timeout):
-    #     sleep(1)
-    #     if p.poll() is not None:
-    #         return p.communicate()
-    # p.kill()
+
     try:
-        if res.returncode:
-            return ["can't compile"]
-        else:
+        try:
             res.stdin.write(bytes(test_input, 'utf-8'))
-            output = res.communicate()[0].decode().replace('\n', '\r\n').rstrip()
-            try:
-                assert output == test_output
-            except Exception as e:
-                return list(difflib.ndiff(output, test_output))
-            return []
+            output = res.communicate(timeout=15)[0].decode().replace('\n', '\r\n').rstrip()
+            assert output == test_output
+            # res.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            print("runtime")
+            res.kill() 
+            return ["runtime"]
+        except Exception as e:
+            return list(difflib.ndiff(output, test_output))
+        return []
     except Exception as e:
         return ["can't compile"]
 
@@ -40,7 +38,8 @@ def solution_to_file(solution, test):
 
 @job
 def test_solution(solution_id):
-    solution = SolutionInstance.objects.get(id=solution_id)
+    print('test_solution')
+    solution = SolutionInstance.objects.get(pk=solution_id)
     task = solution.task
     # import pdb; pdb.set_trace()
     tests = [test for test in Test.objects.all() if test.task == task]
@@ -49,6 +48,7 @@ def test_solution(solution_id):
     test_num = len(tests)
     for test in tests:
         res = solution_to_file(solution.solution, test)
+        print(res)
         if res:
             reports = reports + 'For test {} diffs:'.format(test.test_num) + str(res) + '\n'
         else:
@@ -57,8 +57,9 @@ def test_solution(solution_id):
     solution.score = format(score/test_num, '.2f')
     solution.reports = reports
     solution.done = True
+    solution.user.update_score(float(solution.score), solution.task)
+    solution.user.save()
     solution.save()
-
-    # import pdb; pdb.set_trace()
-    print('publist score')
+    
+    print('sent_message')
     pubnub_test.publish([solution.score, solution_id])

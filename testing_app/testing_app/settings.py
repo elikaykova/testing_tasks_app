@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'catalog.apps.CatalogConfig',
     'accounts',
     "django_rq",
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
