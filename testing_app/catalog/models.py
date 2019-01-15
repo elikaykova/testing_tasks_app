@@ -37,7 +37,7 @@ class User(AbstractUser):
         max_score = self.get_max_score_for_task(task)
         if max_score < score:
             self.user_progress = self.user_progress - max_score + score
-            self.user_progress = format(self.user_progress, '.2f')
+            self.user_progress = float(format(self.user_progress, '.2f'))
 
     def get_tasks(self):
         return [tasks for task in self.get_all_tasks() if task in [sol_task.task for sol_task in self.get_all_solutions()]]
@@ -112,3 +112,14 @@ class SolutionInstance(models.Model):
 
     def get_queryset(self):
         return SolutionInstance.objects.filter(owner=self.kwargs['pk'])
+
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
+
+# @receiver(post_save, sender=settings.AUTH_USER_MODEL)
+# def create_auth_token(sender, instance=None, created=False, **kwargs):
+#     if created:
+#         t = Token.objects.create(user=instance)
+#         print(t)

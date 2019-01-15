@@ -28,10 +28,10 @@ class SubmitForm(forms.ModelForm):
         fields = ['solution',]
         labels = {'solution': 'Your solution'}
 
-
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         super(SubmitForm, self).__init__(*args, **kwargs)
+        
 
 class SubmitTaskForm(forms.ModelForm):
     class Meta:

@@ -20,6 +20,8 @@ from rest_framework import authentication
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView, ListAPIView, RetrieveAPIView, ListCreateAPIView, CreateAPIView
 from rest_framework.mixins import CreateModelMixin, UpdateModelMixin
+# from rest_framework.authtoken.models import Token
+
 
 from catalog.models import Test, Task, SolutionInstance, User
 from catalog.forms import SubmitForm, SubmitTaskForm, AddTestForm, AddTestFormSet
@@ -30,6 +32,11 @@ from catalog.serializers import UserSerializer, SubmitUserSerializer, TaskSerial
 
 def index(request):
     """View function for home page of site."""
+
+    # # Generate tokens
+    # for user in User.objects.all():
+    #     t = Token.objects.get_or_create(user=user)
+    #     print(t)
 
     # Generate counts of some of the main objects
     num_users = User.objects.filter(is_staff=False).count()

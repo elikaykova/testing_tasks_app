@@ -15,6 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data, instance=None):
         user = super(UserSerializer, self).create(validated_data)
         user.set_password(validated_data['password'])
+        user.is_active = True
         user.save()
         return user
 
@@ -32,6 +33,8 @@ class SubmitUserSerializer(serializers.ModelSerializer):
         user = super(UserSerializer, self).create(validated_data)
         user.set_password(validated_data['password'])
         user.date_joined = timezone.now()
+        # token, create = Token.objects.get_or_create(user=user)
+        # user.token = token.key
         user.save()
         return user
 

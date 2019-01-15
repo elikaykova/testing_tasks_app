@@ -1,0 +1,174 @@
+body {
+    width: 60%;
+    margin: auto;
+    background: #EFFBF8;
+    text-align: left;
+    padding-left: 40px;
+    margin: auto;
+    /*font-family: sans-serif;*/
+}
+
+ul {
+    list-style: none;
+}
+
+.loginbuttons {
+    float: right;
+}
+
+a {
+    color: black;
+    text-decoration: none;
+}
+
+a:visited {
+    color: black;
+}
+
+a:hover, a > :hover {
+    color: #E0F2F7;
+    background-color: #4CAF50; 
+}
+
+.name {
+    font-style: italic;
+    color: darkblue;
+}
+
+.name:visited {
+    color: darkblue;
+}
+
+.name:hover {
+    color: #E0F2F7;
+}
+
+.active {
+  background-color: #4CAF50;
+}
+
+#scoreTable td, #userTable td{
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.topRow {
+    background-color: #CEF6D8;
+}
+
+#submitSolutionForm {
+}
+
+text[type=input], textarea {
+    width: 100%;
+    height: 350px;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    resize: none;
+    font-size: 16px;
+    resize: none;
+}
+
+button[type=submit] {
+    width: 100%;
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button[type=submit]:hover , #editButton:hover, .backButton:hover {
+    background-color: #45a049;
+}
+
+#addTestButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin: auto;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    float: right;
+}
+
+#editButton, .backButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#editButtons, .backButton{
+    padding-top: 14px;
+    float: right;
+}
+
+.nav-bar {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #4CAF50;
+}
+
+.leftButtons {
+    float: left;
+}
+
+.leftButtons , .loginbuttons {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.nav-bar a:hover {
+   background-color: #4CAF50;
+}
+
+.leftButtons:visited{
+    color: white;
+}
+
+table {
+
+    table-layout: auto;
+}
+
+td {
+    height: 30px;
+}
+
+.formset {
+    /*float: left;*/
+    /*display: fixed;*/
+    margin: auto;
+    /*text-align: center;*/
+    /*padding: 5px;*/
+}
+
+.formset textarea {
+    width: 400px;
+    height: 45px;
+    margin: auto;
+}
+
+pre {
+    font-family: sans-serif;
+}
+
+.backButton, .backButton:visited {
+    color: white;
+}

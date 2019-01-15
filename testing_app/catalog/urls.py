@@ -1,5 +1,7 @@
-from django.urls import path
+from django.urls import include, path
 from . import views
+from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework_jwt.views import refresh_jwt_token
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -29,4 +31,9 @@ urlpatterns = [
     path('API/submitTask/', views.SubmitTaskAPI.as_view(), name='API_submitTask'),
     path('API/editTask/<int:pk>', views.EditTaskAPI.as_view(), name='API_editTask'),
     path('API/Tests/', views.TestViewAPI.as_view(), name='API_Tests'),
+    # path('API/tokens', obtain_auth_token, name='tokens'),
+    path('API/rest_auth/', include('rest_auth.urls')),
+    path('API/rest_auth_2/', include('rest_auth.registration.urls')),
+    # path('API/API_users/', include('users.urls')),
+    # path('API/jwt_tokens', refresh_jwt_token, name='jwt_tokens'),
 ]
