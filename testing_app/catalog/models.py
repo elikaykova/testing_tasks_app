@@ -17,11 +17,11 @@ class User(AbstractUser):
         return f'{self.id}: {self.username}'
 
     def get_all_tasks(self):
-        solutions = [sol.id for sol in SolutionInstance.objects.all() if sol.user.id == self.id]
+        solutions = [sol.task.id for sol in Solution.objects.all() if sol.user.id == self.id]
         return [task for task in Task.objects.all() if task.id in solutions]
 
     def get_all_solutions(self):
-        return [sol for sol in SolutionInstance.objects.all() if sol.user.id == self.id]
+        return [sol for sol in Solution.objects.all() if sol.user.id == self.id]
 
     def get_max_score_for_task(self, task):
         solutions = self.get_all_solutions()
@@ -39,8 +39,8 @@ class User(AbstractUser):
             self.user_progress = self.user_progress - max_score + score
             self.user_progress = float(format(self.user_progress, '.2f'))
 
-    def get_tasks(self):
-        return [tasks for task in self.get_all_tasks() if task in [sol_task.task for sol_task in self.get_all_solutions()]]
+    # def get_tasks(self):
+    #     return [tasks for task in self.get_all_tasks() if task in [sol_task.task for sol_task in self.get_all_solutions()]]
 
     # def create_user(self, username, email, password=None):
     #     self.username = username
@@ -67,9 +67,9 @@ class Task(models.Model):
     def get_absolute_url(self):
         return reverse('task-detail', args=[str(self.id)])
 
-    @classmethod
-    def get_all_tasks(cls):
-        return ((task, str(task)) for task in Task.objects.all())
+    # @classmethod
+    # def get_all_tasks(cls):
+    #     return ((task, str(task)) for task in Task.objects.all())
 
 
 class Test(models.Model):
@@ -83,13 +83,13 @@ class Test(models.Model):
         ordering = ['task_id', 'test_num']
 
     def __str__(self):
-        return f'Test{self.test_num} for {self.task.task_name}'
+        return f'Test for {self.task.task_name}'
 
     # def get_absolute_url(self):
     #     return reverse('test-detail', args=[str(self.test_id)])
 
 
-class SolutionInstance(models.Model):
+class Solution(models.Model):
     """Model representing a solution"""
     task = models.ForeignKey('Task', on_delete=models.CASCADE)
     user = models.ForeignKey('User', on_delete=models.CASCADE)
@@ -99,27 +99,18 @@ class SolutionInstance(models.Model):
     submition_date = models.DateTimeField(null=True, blank=True)
     solution = models.TextField(null=True)
     done = models.BooleanField(default=False)
+    language = models.CharField(max_length=64, default='Python')
+    # language = (('Python', 'Python'), ('Ruby', 'Ruby'))
 
     class Meta:
-        ordering = ['submition_date', 'user']
+        ordering = ['-submition_date', 'user']
 
     def __str__(self):
         """String for representing the Model object."""
-        return f'SolutionInstance for task: "{self.task.task_name}", by {self.user.username}'
+        return f'Solution for task: "{self.task.task_name}", by {self.user.username}, written on {self.language}, with score: {self.score}'
 
     def get_absolute_url(self):
         return reverse('solution-detail', args=[str(self.id)])
 
-    def get_queryset(self):
-        return SolutionInstance.objects.filter(owner=self.kwargs['pk'])
-
-from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from rest_framework.authtoken.models import Token
-
-# @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-# def create_auth_token(sender, instance=None, created=False, **kwargs):
-#     if created:
-#         t = Token.objects.create(user=instance)
-#         print(t)
+    # def get_queryset(self):
+    #     return Solution.objects.filter(owner=self.kwargs['pk'])

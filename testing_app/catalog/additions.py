@@ -6,30 +6,57 @@ import os
 import docker
 import requests.exceptions
 
-from catalog.models import Test, Task, SolutionInstance, User
+from catalog.models import Test, Task, Solution, User
 from catalog import pubnub_test
 
+# import django
+# django.setup()
+def delete_files():
+    name = 'app.py'
+    if os.path.exists(name):
+        os.remove(name)
+    name = 'app.rb'
+    if os.path.exists(name):
+        os.remove(name)
+    name = 'input.txt'
+    if os.path.exists(name):
+        os.remove(name)
 
-def create_container():
+
+def create_container(language, name):
     cli = docker.APIClient(base_url='unix://var/run/docker.sock')
-    path = os.getcwd()+'/app.py:/app/app.py'
     path2 = os.getcwd()+'/input.txt:/app/input.txt'
+    # print(language)
+    if language == 'Ruby':
+        command = 'ruby'
+        path = os.getcwd()+'/app.rb:/app/app.rb'
+        image='ruby'
+    else:
+        command = 'python3'
+        path = os.getcwd()+'/app.py:/app/app.py'
+        image='python:3'
+    
     cli.create_container(
-        image='python:3',
-        command=['python3', 'app.py'],
+        image=image,
+        command=[command, name],
         # command=['cat', 'app.py']
         volumes=['/app'],
         host_config=cli.create_host_config(
             binds=[path, path2]
         ),
         name='container_test',
-        working_dir='/app'
+        working_dir='/app',
     )
     try:
         cli.start('container_test')
-        cli.wait('container_test', timeout=10)
+        status = cli.wait('container_test', timeout=10)
+        print('container ', status['StatusCode'])
+        if status['StatusCode']:
+            raise Exception('Error in the container')
         output = cli.logs('container_test')
+        print('try_block_output: ', output)
         cli.remove_container('container_test', force=True)
+        return output
 
     except requests.exceptions.ConnectionError:
         print("runtime")
@@ -37,21 +64,13 @@ def create_container():
         return "runtime"
 
     except Exception as e:
+        print('Exeption: ', e)
         cli.remove_container('container_test', force=True)
         return "can't compile"
 
-    # for c in cli.containers.list():
-    #     print(c)
-    #     c.stop()
 
-    # cli.remove_container('container_test', force=True)
-    # cli.stop('container_test')
-    print(output)
-    return output
-
-
-def exec_file(test_output):
-    logs = create_container()
+def exec_file(test_output, language, name):
+    logs = create_container(language, name)
     if logs == 'runtime' or logs == "can't compile":
         return [logs]
     logs = logs.decode("utf-8").replace('\n', '\r\n').rstrip()
@@ -62,30 +81,25 @@ def exec_file(test_output):
         return list(difflib.ndiff(logs, test_output))
     return []
 
-    # try:
-    #     try:
-    #         res.stdin.write(bytes(test_input, 'utf-8'))
-    #         output = res.communicate(timeout=15)[0].decode().replace('\n', '\r\n').rstrip()
-    #         assert output == test_output
-    #         # res.wait(timeout=2)
-    #     except subprocess.TimeoutExpired:
-    #         print("runtime")
-    #         res.kill() 
-    #         return ["runtime"]
-    #     except Exception as e:
-    #         return list(difflib.ndiff(output, test_output))
-    #     return []
-    # except Exception as e:
-    #     return ["can't compile"]
 
+def solution_to_file(solution, test, language):
+    if language == 'Ruby':
+        name = 'app.rb'
+        suffix = '.rb'
+        file_prefix = 'file = STDIN.reopen("input.txt")\n'
+        file_suffix = '\nfile.close'
+    else:
+        name = 'app.py'
+        suffix = '.py'
+        file_prefix = "import sys\nsys.stdin = open('./input.txt')\n"
+        file_suffix = ''
 
-def solution_to_file(solution, test):
-    with tempfile.NamedTemporaryFile(suffix='.py', delete=False, mode='w+b') as temp:
-        temp.write(bytes("import sys\nsys.stdin = open('./input.txt')\n" + solution,'utf-8'))
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False, mode='w+b') as temp:
+        temp.write(bytes(file_prefix + solution + file_suffix,'utf-8'))
         temp.close()
-        if os.path.exists("app.py"):
-            os.remove("app.py")
-        os.rename(temp.name, 'app.py')
+        if os.path.exists(name):
+            os.remove(name)
+        os.rename(temp.name, name)
 
         with tempfile.NamedTemporaryFile(suffix='.txt', delete=False, mode='w+b') as input_file:
             input_file.write(bytes(test.test_input, 'utf-8'))
@@ -93,14 +107,15 @@ def solution_to_file(solution, test):
                 os.remove("input.txt")
             os.rename(input_file.name, 'input.txt')
             input_file.close()
-            # print(os.listdir(os.getcwd()))
-            return exec_file(test.test_output)
+
+            return exec_file(test.test_output, language, name)
 
 
 @job
-def test_solution(solution_id):
+def solution_testing(solution_id):
     print('test_solution')
-    solution = SolutionInstance.objects.get(pk=solution_id)
+    solution = Solution.objects.get(pk=solution_id)
+    print(solution)
     task = solution.task
     # import pdb; pdb.set_trace()
     tests = [test for test in Test.objects.all() if test.task == task]
@@ -108,8 +123,7 @@ def test_solution(solution_id):
     reports = ""
     test_num = len(tests)
     for test in tests:
-        res = solution_to_file(solution.solution, test)
-        print(res)
+        res = solution_to_file(solution.solution, test, solution.language)
         if res:
             reports = reports + 'For test {} diffs:'.format(test.test_num) + str(res) + '\n'
         else:
@@ -121,9 +135,8 @@ def test_solution(solution_id):
     solution.user.update_score(float(solution.score), solution.task)
     solution.user.save()
     solution.save()
-    # if os.path.exists("app.py"):
-    #     os.remove("app.py")
-    # if os.path.exists("input.txt"):
-    #     os.remove("input.txt")
+    delete_files()
+
     print('sent_message')
+    print(solution)
     pubnub_test.publish([solution.score, solution_id])

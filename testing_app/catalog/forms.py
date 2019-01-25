@@ -1,5 +1,5 @@
 from django import forms
-from catalog.models import Test, Task, SolutionInstance, User
+from catalog.models import Test, Task, Solution, User
 from django.forms import modelformset_factory, inlineformset_factory
 
 
@@ -8,7 +8,7 @@ from django.forms import modelformset_factory, inlineformset_factory
 #     solution = forms.CharField(label='Solution', max_length=1000)
 
 #     class Meta:
-#         model = SolutionInstance
+#         model = Solution
 #         fields = ('solution',)
 
 #     def __init__(self, *args, **kwargs):
@@ -17,6 +17,7 @@ from django.forms import modelformset_factory, inlineformset_factory
 
 class SubmitForm(forms.ModelForm):
     solution = forms.CharField(widget=forms.Textarea)
+    language = forms.ChoiceField(choices=[('Python', 'Python'), ('Ruby', 'Ruby')])
     # solution.widget.attrs.update({'id' : 'solution_id'})
 
     # def sub(self):
@@ -24,14 +25,14 @@ class SubmitForm(forms.ModelForm):
     #     sol.user = request.user
 
     class Meta:
-        model = SolutionInstance
+        model = Solution
         fields = ['solution',]
         labels = {'solution': 'Your solution'}
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         super(SubmitForm, self).__init__(*args, **kwargs)
-        
+
 
 class SubmitTaskForm(forms.ModelForm):
     class Meta:

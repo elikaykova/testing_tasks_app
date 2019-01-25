@@ -1,14 +1,15 @@
 {% extends "base_generic.html" %}
-
 {% block content %}
 
-<h1>Name: {{ user.username }}</h1>
+<h3>Name: {{ solution.user.username }}</h3>
+<strong>Task:</strong><pre><a href="{{ solution.task.get_absolute_url }}">{{solution.task.task_name}}</a></pre>
+{% if solution.done %}
+    <p><strong>Score:</strong> {{ solution.score }}</p>
+    <p><strong>Language:</strong> {{ solution.language }}</p>
+    <p><strong>Solution:</strong> <pre>{{solution.solution}}<pre></p>
+{% if solution.reports %}<strong>Report:</strong><pre>{{solution.reports}}</pre>{% endif %}
+{% else %}
+    <p>Submiting... Please wait.</p>
+{% endif %}
 
-<p><strong>Progress:</strong> {{ user.user_progress }}</p>
-<p><strong>Solved tasks:</strong> 
-<ul>
-{% for i in user.get_all_tasks %}{{i}}
-    <li>{{i.task_name}}</li>
-{% endfor %}</p>  
-</ul>
 {% endblock %}

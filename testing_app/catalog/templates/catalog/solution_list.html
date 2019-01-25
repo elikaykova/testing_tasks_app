@@ -16,7 +16,7 @@
       <td>Date</td>
       <td>Solution</td>
     </tr>
-    {% for sol in solutioninstance_list %}
+    {% for sol in user.get_all_solutions %}
       {% if sol.user == request.user %}
         <tr>
           <td>

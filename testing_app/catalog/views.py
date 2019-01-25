@@ -13,6 +13,8 @@ from django.views.generic.edit import DeleteView
 from django.utils import timezone
 from django.http import HttpResponseRedirect
 import pytz
+from rest_framework import permissions
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -23,11 +25,11 @@ from rest_framework.mixins import CreateModelMixin, UpdateModelMixin
 # from rest_framework.authtoken.models import Token
 
 
-from catalog.models import Test, Task, SolutionInstance, User
+from catalog.models import Test, Task, Solution, User
 from catalog.forms import SubmitForm, SubmitTaskForm, AddTestForm, AddTestFormSet
-from catalog.additions import test_solution
+from catalog.additions import solution_testing
 from catalog.rq_test import rq_exec
-from catalog.serializers import UserSerializer, SubmitUserSerializer, TaskSerializer, SubmitTaskSerializer, TestSerializer, SolutionInstanceSerializer, SubmitSolutionSerializer
+from catalog.serializers import UserSerializer, SubmitUserSerializer, TaskSerializer, SubmitTaskSerializer, TestSerializer, SolutionSerializer, SubmitSolutionSerializer
 
 
 def index(request):
@@ -40,17 +42,17 @@ def index(request):
 
     # Generate counts of some of the main objects
     num_users = User.objects.filter(is_staff=False).count()
-    num_solutions = SolutionInstance.objects.all().count()
+    num_solutions = Solution.objects.all().count()
 
     num_tasks = Task.objects.count()
-    num_visits = request.session.get('num_visits', 0)
-    request.session['num_visits'] = num_visits + 1
+    # num_visits = request.session.get('num_visits', 0)
+    # request.session['num_visits'] = num_visits + 1
 
     context = {
         'num_users': num_users,
         'num_tasks': num_tasks,
         'num_solutions': num_solutions,
-        'num_visits': num_visits,
+        # 'num_visits': num_visits,
     }
 
     # Render the HTML template index.html with the data in the context variable
@@ -72,36 +74,38 @@ class MyTaskListView(LoginRequiredMixin, generic.ListView):
 class TaskListView(generic.ListView):
     model = Task
 
-class TaskDetailView(generic.DetailView):
+class TaskDetailView(LoginRequiredMixin, generic.DetailView):
     model = Task
 
 class SolutionListView(LoginRequiredMixin, generic.ListView):
-    model = SolutionInstance
+    model = Solution
 
     ordering = ['-submition_date']
 
 class SolutionDetailView(LoginRequiredMixin, generic.DetailView):
-    model = SolutionInstance
+    model = Solution
 
-@login_required
-def submitSolution(request):
-    if request.method == 'POST':
-        form = SubmitSolutionForm(request.POST, user=request.user)
-        if form.is_valid():
-            sol = form.save(commit=False)
-            sol.solution = form.cleaned_data['solution']
-            sol.task = form.cleaned_data['task']
-            sol.user = request.user
-            # form.user = User.objects.get(user)
-            sol = sol.save()
-            return redirect('solutions')
-        else:
-            print(form.errors)
-            return render(request, 'submitSolution.html', {'sol': sol})
+# @login_required
+# def submitSolution(request):
+#     if request.method == 'POST':
+#         form = SubmitSolutionForm(request.POST, user=request.user)
+#         if form.is_valid():
+#             sol = form.save(commit=False)
+#             sol.solution = form.cleaned_data['solution']
+#             sol.task = form.cleaned_data['task']
+#             sol.user = request.user
+#             sol.language = form.cleaned_data['language']
+#             print('language: ', form.cleaned_data['language'])
+#             # form.user = User.objects.get(user)
+#             sol = sol.save()
+#             return redirect('solutions')
+#         else:
+#             print(form.errors)
+#             return render(request, 'submitSolution.html', {'sol': sol})
 
-    else:
-        form = SubmitSolutionForm(user=request.user)
-    return render(request, 'submitSolution.html',  {'form': form})
+#     else:
+#         form = SubmitSolutionForm(user=request.user)
+#     return render(request, 'submitSolution.html',  {'form': form})
 
 
 @login_required
@@ -116,25 +120,17 @@ def submit(request, pk):
             sol.user = request.user
             sol.done = False
             sol.submition_date = timezone.now()
+            sol.language = form.cleaned_data['language']
             sol.save()
 
             rq_exec(sol.id)
-            # sol.score = format(sol.score, '.2f')
-            # updating user score
-            # request.user.update_score(float(sol.score), sol.task)
-            # request.user.save()
-            # request.user = sol.user.save()
             return redirect('solutions')
         else:
-            print(form.errors)
-            return render(request, 'submitSolution.html', {'sol': sol})
+            return render(request, 'submitSolution.html', {'form': form, "task":task})
     else:
         form = SubmitForm(user=request.user)
     return render(request, 'submitSolution.html', {'form': form, "task":task})
 
-# class editTask(UpdateView):
-#     model = Task
-#     fields = ['task_name', 'text']
 
 @login_required
 def editTask(request, pk=None):
@@ -146,6 +142,7 @@ def editTask(request, pk=None):
         return redirect('tasks')
 
     return render(request, 'editTask.html',  {'form': form, 'task': task, })
+
 
 @login_required
 def deleteTask(request, pk=None):
@@ -203,14 +200,30 @@ def submitTask(request):
 
 
 
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    """
+    Object-level permission to only allow owners of an object to edit it.
+    Assumes the model instance has an `owner` attribute.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Instance must have an attribute named `owner`.
+        return obj == request.user
+
 
 #### API_VIEWS
 
 
-class UserListAPIView(ListCreateAPIView, LoginRequiredMixin):
+class UserListAPIView(ListCreateAPIView):
     # renderer_classes = [TemplateHTMLRenderer]
     # template_name = "catalog/user_list.html"
     serializer_class = SubmitUserSerializer
+    permission_classes = (IsAuthenticated, )
 
     def get(self, request, format=None):
         """
@@ -230,10 +243,10 @@ class UserListAPIView(ListCreateAPIView, LoginRequiredMixin):
         return redirect('API_users')
 
 
-class UserDetailAPIView(RetrieveUpdateAPIView, LoginRequiredMixin):
+class UserDetailAPIView(RetrieveUpdateAPIView):
     # renderer_classes = [TemplateHTMLRenderer]
     # template_name = "catalog/user_detail.html"
-    # authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (IsAuthenticated, IsOwnerOrReadOnly)
     serializer_class = SubmitUserSerializer
 
     def get_object(self):
@@ -244,9 +257,10 @@ class UserDetailAPIView(RetrieveUpdateAPIView, LoginRequiredMixin):
         return self.update(request, *args, **kwargs)
 
 
-class MyTaskListAPIView(LoginRequiredMixin, ListCreateAPIView):
+class MyTaskListAPIView(ListCreateAPIView):
     # renderer_classes = [TemplateHTMLRenderer]
     # template_name = "catalog/my_task_list.html"
+    permission_classes = (IsAuthenticated, IsOwnerOrReadOnly,)
     serializer_class = SubmitTaskSerializer
 
     def get(self, request, format=None):
@@ -255,7 +269,7 @@ class MyTaskListAPIView(LoginRequiredMixin, ListCreateAPIView):
         return Response({'tasks': serializer.data})
 
     def post(self, request):
-        serializer = SubmitTaskSerializer(data=request.data)
+        serializer = SubmitTaskSerializer(data=request.data, context={'user': request.user})
         if not serializer.is_valid():
             print(serializer.errors)
             return Response({'serializer': serializer.data})
@@ -267,6 +281,7 @@ class MyTaskListAPIView(LoginRequiredMixin, ListCreateAPIView):
 class TaskListAPIView(ListCreateAPIView):
     # renderer_classes = [TemplateHTMLRenderer]
     # template_name = "catalog/task_list.html"
+    permission_classes = (IsOwnerOrReadOnly,)
     serializer_class = SubmitTaskSerializer
 
     def get(self, request, format=None):
@@ -286,47 +301,57 @@ class TaskListAPIView(ListCreateAPIView):
 # class TaskDetailAPIView(generic.DetailView):
 #     model = Task
 
-class SolutionListAPIView(LoginRequiredMixin, ListAPIView):
+class SolutionListAPIView(ListAPIView):
     # renderer_classes = [TemplateHTMLRenderer]
-    # template_name = "catalog/solutioninstance_list.html"
+    # template_name = "catalog/Solution_list.html"
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None):
-        solutions = SolutionInstance.objects.filter(user=request.user)
-        serializer = SolutionInstanceSerializer(solutions, many=True)
+        solutions = Solution.objects.filter(user=request.user)
+        serializer = SolutionSerializer(solutions, many=True)
         return Response({'solutions': serializer.data})
 
 
-class SolutionDetailAPIView(LoginRequiredMixin, RetrieveAPIView):
+class SolutionDetailAPIView(RetrieveAPIView):
     # renderer_classes = [TemplateHTMLRenderer]
-    # template_name = "catalog/solutioninstance_detail.html"
+    # template_name = "catalog/Solution_detail.html"
     # authentication_classes = (authentication.TokenAuthentication,)
+    serializer_class = SolutionSerializer
+    permission_classes = (IsAuthenticated,)
 
-    def get(self, request, pk, format=None):
-        solution = SolutionInstance.objects.get(pk = pk)
-        serializer = SolutionInstanceSerializer(solution)
-        return Response({'solutioninstance': serializer.data})
+    def get_object(self):
+        sol_id = self.kwargs["pk"]
+        return get_object_or_404(Solution, id=sol_id)
 
 
-class CreateSolutionAPIView(LoginRequiredMixin, ListCreateAPIView):
+    # def get(self, request, pk, format=None):
+    #     solution = Solution.objects.get(pk = pk)
+    #     serializer = SolutionSerializer(solution)
+    #     return Response({'Solution': serializer.data})
+
+
+class CreateSolutionAPIView(ListCreateAPIView):
     # renderer_classes = [TemplateHTMLRenderer]
     # template_name = "catalog/submitFormAPI.html"
+    permission_classes = (IsAuthenticated, )
     serializer_class = SubmitSolutionSerializer
 
     def get(self, request, pk):
         print('get')
         task = Task.objects.get(id=pk)
-        solutions = SolutionInstance.objects.filter(task=task)
+        solutions = Solution.objects.filter(task=task)
         task = TaskSerializer(task)
-        serializer = SolutionInstanceSerializer(solutions, many=True)
+        serializer = SolutionSerializer(solutions, many=True)
         return Response({ 'task': task.data, 'solutions': serializer.data})
 
     def post(self, request, pk):
         print('post')
         task = Task.objects.get(id=pk)
-        serializer = SubmitSolutionSerializer(data=request.data, 
+        serializer = SubmitSolutionSerializer(
+            data=request.data, 
             context={'task': task, 'user': request.user, 'date': timezone.now()})
         if not serializer.is_valid():
-            return Response({'serializer': serializer.data, 'task': task})
+            return Response({'serializer': serializer.data, 'task': task.id})
         # request.user.update_score(float(sol.score), sol.task)
         # request.user.save()
         serializer.save()
@@ -335,68 +360,10 @@ class CreateSolutionAPIView(LoginRequiredMixin, ListCreateAPIView):
         return HttpResponseRedirect("")
 
 
-
-# class CreateSolutionAPIView(LoginRequiredMixin, CreateAPIView):
-#     # renderer_classes = [TemplateHTMLRenderer]
-#     # template_name = "catalog/submitFormAPI.html"
-#     serializer_class = SubmitSolutionSerializer
-
-#     def get(self, request, pk):
-#         print('get')
-#         task = Task.objects.get(id=pk)
-#         task = TaskSerializer(task)
-#         return Response({ 'task': task.data})
-
-#     def post(self, request, pk):
-#         print('post')
-#         task = Task.objects.get(id=pk)
-#         serializer = SubmitSolutionSerializer(data=request.data, 
-#             context={'task': task, 'user': request.user, 'date': timezone.now()})
-#         if not serializer.is_valid():
-#             return Response({'serializer': serializer.data, 'task': task})
-#         # request.user.update_score(float(sol.score), sol.task)
-#         # request.user.save()
-#         serializer.save()
-#         return redirect('API_solutions')
-
-### CreateSolutionAPIView as Form
-# class CreateSolutionAPIView(LoginRequiredMixin, CreateAPIView):
-#     renderer_classes = [TemplateHTMLRenderer]
-#     template_name = "catalog/submitFormAPI.html"
-#     # authentication_classes = (authentication.TokenAuthentication,)
-#     def get(self, request, pk):
-#         print('get')
-#         task = Task.objects.get(id=pk)
-#         solution = SolutionInstanceSerializer()
-#         return Response({'serializer': solution, 'task': task})
-
-#     def post(self, request, pk):
-#         print('post')
-#         task = Task.objects.get(id=pk)
-#         serializer = SolutionInstanceSerializer(data=request.data)
-#         serializer.task = task
-#         print(':(')
-#         if not serializer.is_valid():
-#             # print(serializer.errors)
-#             return Response({'serializer': serializer, 'task': task})
-#         print(':(:(')
-#         serializer.save()
-#         return redirect('API_solutions')
-
-### TaskDetailAPI without PUT
-# class TaskDetailAPI(LoginRequiredMixin, APIView):
-#     # renderer_classes = [TemplateHTMLRenderer]
-#     # template_name = 'catalog/updateTaskFormAPI.html'
-
-#     def get(self, request, pk):
-#         task = get_object_or_404(Task, pk=pk)
-#         serializer = TaskSerializer(task)
-#         return Response({'serializer': serializer.data})
-
-
-class SubmitTaskAPI(LoginRequiredMixin, CreateAPIView):
+class SubmitTaskAPI(CreateAPIView):
     # renderer_classes = [TemplateHTMLRenderer]
     # template_name = 'catalog/submitTaskFormAPI.html'
+    # permission_classes = (IsAuthenticated, )
     serializer_class = TaskSerializer
 
     def post(self, request):
@@ -409,7 +376,8 @@ class SubmitTaskAPI(LoginRequiredMixin, CreateAPIView):
         return redirect('API_tasks')
 
 
-class TaskDetailAPI(LoginRequiredMixin, RetrieveUpdateAPIView):
+class TaskDetailAPI(RetrieveUpdateAPIView):
+    permission_classes = (IsAuthenticated, )
     serializer_class = TaskSerializer
 
     def get_object(self):
@@ -421,7 +389,8 @@ class TaskDetailAPI(LoginRequiredMixin, RetrieveUpdateAPIView):
 
 
 
-class EditTaskAPI(LoginRequiredMixin, RetrieveUpdateAPIView):
+class EditTaskAPI(RetrieveUpdateAPIView):
+    permission_classes = (IsAuthenticated, )
     serializer_class = TaskSerializer
 
     def get_object(self):
@@ -432,31 +401,10 @@ class EditTaskAPI(LoginRequiredMixin, RetrieveUpdateAPIView):
         return self.update(request, *args, **kwargs)
 
 
-
-### EditTaskAPI as Form
-# class EditTaskAPI(APIView):
-#     renderer_classes = [TemplateHTMLRenderer]
-#     template_name = 'catalog/updateTaskFormAPI.html'
-
-#     def get(self, request, pk):
-#         task = get_object_or_404(Task, pk=pk)
-#         serializer = TaskSerializer(task)
-#         return Response({'serializer': serializer})
-
-#     def post(self, request, pk):
-#         task = get_object_or_404(Task, pk=pk)
-#         serializer = TaskSerializer(task, data=request.data)
-#         if not serializer.is_valid():
-#             print(serializer.errors)
-#             return Response({'serializer': serializer})
-#         serializer.save()
-#         print(serializer)
-#         return redirect('API_tasks')
-
-
-class TestViewAPI(LoginRequiredMixin, APIView):
+class TestViewAPI(APIView):
     # renderer_classes = [TemplateHTMLRenderer]
     # template_name = 'catalog/updateTestsFormAPI.html'
+    permission_classes = (IsAuthenticated, )
     serializer_class = TestSerializer
 
     def get(self, request, format=None):
@@ -469,7 +417,35 @@ class TestViewAPI(LoginRequiredMixin, APIView):
         serializer = TestSerializer(data=request.data)
         if not serializer.is_valid():
             print(serializer.errors)
-            return Response({'serializer': serializer})
+            return Response({'serializer': serializer.data})
         serializer.save()
-        print(serializer)
-        return redirect('API_Tests')
+        # print(serializer)
+        return redirect('API_tests')
+
+
+class TestDetailAPI(RetrieveUpdateAPIView):
+    permission_classes = (IsAuthenticated, IsOwnerOrReadOnly,)
+    serializer_class = TestSerializer
+
+    def get_object(self):
+        test_id = self.kwargs["pk"]
+        return get_object_or_404(Test, id=test_id)
+
+    # def put(self, request, *args, **kwargs):
+    #     return self.update(request, *args, **kwargs)
+
+
+# from .serializers import LoginUserSerializer
+
+
+# class LoginAPI(generics.GenericAPIView):
+#     serializer_class = LoginUserSerializer
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         user = serializer.validated_data
+#         return Response({
+#             "user": UserSerializer(user, context=self.get_serializer_context()).data,
+#             "token": AuthToken.objects.create(user)
+#         })

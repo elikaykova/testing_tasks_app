@@ -1,10 +1,10 @@
 from django.contrib import admin
-from catalog.models import Task, SolutionInstance, Test, User
+from catalog.models import Task, Solution, Test, User
 from django.contrib import admin
 
 # admin.site.register(Test)
 # admin.site.register(Task)
-# admin.site.register(SolutionInstance)
+# admin.site.register(Solution)
 
 
 class TestsInline(admin.TabularInline):
@@ -23,8 +23,8 @@ class TestAdmin(admin.ModelAdmin):
     fields = [('test_num', 'task_id'), ("test_input", 'test_output')]
 
 
-@admin.register(SolutionInstance)
-class SolutionInstanceAdmin(admin.ModelAdmin):
+@admin.register(Solution)
+class SolutionAdmin(admin.ModelAdmin):
     list_display = ('task', 'user', 'score', 'attempt', 'submition_date', 'done')
     fields = [('task', 'user'), 'submition_date', 'attempt',  'done', 'solution']
 

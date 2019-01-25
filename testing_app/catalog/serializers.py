@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from catalog.models import Test, Task, SolutionInstance, User
+from catalog.models import Test, Task, Solution, User
 from catalog.rq_test import rq_exec
 from django.utils import timezone
 
@@ -19,22 +19,33 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+from django.contrib.auth import authenticate
+
+
+# class LoginUserSerializer(serializers.Serializer):
+#     username = serializers.CharField()
+#     password = serializers.CharField()
+
+#     def validate(self, data):
+#         user = authenticate(**data)
+#         if user and user.is_active:
+#             return user
+#         raise serializers.ValidationError("Unable to log in with provided credentials.")
+
 
 class SubmitUserSerializer(serializers.ModelSerializer):
     # absolute_url = serializers.URLField(source='get_absolute_url', read_only=True)
 
     class Meta:
         model = User
-        fields = ('username', 'password', 'first_name', 'last_name', 'email')
-        # fields = '__all__'
+        # fields = ('username', 'password', 'first_name', 'last_name', 'email')
+        fields = '__all__'
         ordering = ('username',)
 
     def create(self, validated_data, instance=None):
-        user = super(UserSerializer, self).create(validated_data)
+        user = super(SubmitUserSerializer, self).create(validated_data)
         user.set_password(validated_data['password'])
         user.date_joined = timezone.now()
-        # token, create = Token.objects.get_or_create(user=user)
-        # user.token = token.key
         user.save()
         return user
 
@@ -95,19 +106,19 @@ class TestSerializer(serializers.ModelSerializer):
         # list_serializer_class = TestListSerializer
 
 
-class SolutionInstanceSerializer(serializers.ModelSerializer):
+class SolutionSerializer(serializers.ModelSerializer):
     absolute_url = serializers.URLField(source='get_absolute_url', read_only=True)
     # task = TaskSerializer()
     # user = UserSerializer()
 
     class Meta:
-        model = SolutionInstance
+        model = Solution
         fields = '__all__'
         ordering = ('id',)
         # fields = ('task', 'user', 'score', 'reports', 'submition_date', 'solution', 'absolute_url')
     
     def create(self, validated_data):
-        solution = SolutionInstance(**validated_data)
+        solution = Solution(**validated_data)
         solution.save()
         print(solution)
         return solution
@@ -124,16 +135,17 @@ class SolutionInstanceSerializer(serializers.ModelSerializer):
 
 class SubmitSolutionSerializer(serializers.ModelSerializer):
     absolute_url = serializers.URLField(source='get_absolute_url', read_only=True)
+    language = serializers.ChoiceField(choices=[('Python', 'Python'), ('Ruby', 'Ruby')])
     # task = TaskSerializer()
     # user = UserSerializer()
 
     class Meta:
-        model = SolutionInstance
-        fields = ('solution', 'absolute_url')
+        model = Solution
+        fields = ('solution', 'language', 'absolute_url')
         ordering = ('id',)
     
     def create(self, validated_data):
-        solution = SolutionInstance(**validated_data)
+        solution = Solution(**validated_data)
         solution.task = self.context['task']
         solution.user = self.context['user']
         solution.submition_date = self.context['date']
@@ -151,3 +163,4 @@ class SubmitSolutionSerializer(serializers.ModelSerializer):
     #     instance.done = validated_data.get('done', instance.done)
     #     instance.save()
     #     return instance
+

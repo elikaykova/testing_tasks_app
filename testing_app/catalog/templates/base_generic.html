@@ -16,7 +16,6 @@
                 <li class="leftButtons"><a href="{% url 'mytasks' %}">My tasks</a></li>
                 <li class="leftButtons"><a href="{% url 'solutions' %}">My solutions</a></li>
                 <li class="leftButtons"><a href="{% url 'submitTask' %}">Suggest a task</a></li>
-            <!-- <li><a href="{% url 'submitSolution' %}">Submit solution</a></li> -->
                 <li class="loginbuttons">User: {{ request.user.get_username }}</li>
                 <li class="loginbuttons"><a href="{% url 'accounts:logout' %}?next={{request.path}}">Logout</a></li>   
             {% else %}

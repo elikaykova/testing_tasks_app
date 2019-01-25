@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from catalog.models import User, Task
 
-class AuthorModelTest(TestCase):
+class UserModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         # Set up non-modified objects used by all test methods
@@ -46,6 +46,9 @@ class AuthorModelTest(TestCase):
         task = Task.objects.get(id=1)
         user.update_score(0.65, task)
         self.assertEquals(user.user_progress, 0.65)
+
+    def tearDown(self):
+        pass
 
     ### TO DO
     # def test_get_tasks(self):

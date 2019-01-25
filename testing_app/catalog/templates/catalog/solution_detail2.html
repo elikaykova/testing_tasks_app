@@ -1,0 +1,14 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+
+<h1>Name: {{ user.username }}</h1>
+
+<p><strong>Progress:</strong> {{ user.user_progress }}</p>
+<p><strong>Solved tasks:</strong> 
+<ul>
+{% for i in user.get_all_tasks %}{{i}}
+    <li>{{i.task_name}}</li>
+{% endfor %}</p>  
+</ul>
+{% endblock %}
